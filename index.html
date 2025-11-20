@@ -29,12 +29,49 @@
             box-shadow: 0 4px 10px rgba(255,255,255,0.1);
         }
 
-        body.dark #folderInput,
-        body.dark #speedControl {
+        body.dark #speedControl,
+        body.dark #themeToggle, 
+        body.dark #toggleModeBtn,
+        body.dark .custom-btn {
             background: #333;
             color: #eee;
             border: 1px solid #666;
         }
+
+        /* AUTO SYSTEM THEME (prefers-color-scheme) */
+        @media (prefers-color-scheme: dark) {
+            body.dark {
+            background: #1e1e1e;
+            color: #eee;
+            }
+            body.dark p, body.dark h3 { color: #fff; }
+
+            body.dark ul {
+                background: #2b2b2b;
+                box-shadow: 0 2px 5px rgba(255,255,255,0.1);
+            }
+
+            body.dark li {
+                background: #444;
+                color: #fff;
+            }
+            body.dark li:hover { background: #555; }
+            body.dark li.active { background: #4a90e2; }
+
+            body.dark video {
+                box-shadow: 0 4px 10px rgba(255,255,255,0.1);
+            }
+
+            body.dark #speedControl,
+            body.dark #themeToggle, 
+            body.dark #toggleModeBtn,
+            body.dark .custom-btn {
+                background: #333;
+                color: #eee;
+                border: 1px solid #666;
+            }
+        }
+
 
         body {
             font-family: Arial, sans-serif;
@@ -42,14 +79,26 @@
             background: #f5f5f5;
         }
 
-        #folderInput {
-            height:20px;
-            padding: 8px;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-left:20px;
+        /* File Button */
+        .custom-file-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .real-input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+            position: absolute;
+            z-index: -1;
+        }
+        .custom-btn {
+            width: 150px;
+            margin:15px 0px;
+            padding:10px 20px;
+            border-radius:6px;
+            cursor:pointer;
+            border: 1px solid #aaa;
+            background-color: #fff;
         }
 
         #speedControl {
@@ -57,16 +106,32 @@
             border-radius: 6px;
             margin-right:10px;
         }
+        #toggleModeBtn{
+            width: 150px;
+            margin:15px 0px;
+            padding:10px 20px;
+            border-radius:6px;
+            cursor:pointer;
+            border: 1px solid #aaa;
+            background-color: #fff;
+        }
+        #themeToggle {
+            margin:15px 0; 
+            padding:10px 20px; 
+            border-radius:6px; 
+            cursor:pointer;
+            border: 1px solid #aaa;
+            background-color: #fff;
+        }
 
-        /* --------------------- TOOLTIP --------------------- */
+        /* Tooltip */
         .tooltip-wrapper {
             position: relative;
             display: inline-block;
         }
-
         .tooltip {
             position: absolute;
-            bottom: 45px;
+            bottom: 35px;
             right: 0px;
             background: rgba(0,0,0,0.85);
             color: #fff;
@@ -79,12 +144,10 @@
             transform: translateY(8px);
             transition: 0.2s ease;
         }
-
         .tooltip-wrapper:hover .tooltip {
             opacity: 1;
             transform: translateY(0);
         }
-        /* ---------------------------------------------------- */
 
         ul {
             list-style: none;
@@ -93,19 +156,37 @@
             border-radius: 8px;
             height:90%;
             overflow-y: auto;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
+        /* VIDEO LIST ITEMS */
         li {
+            position: relative;
             margin: 8px 0;
-            padding: 10px;
+            padding: 10px 10px 10px 16px;
             background: #e9e9e9;
             border-radius: 6px;
             cursor: pointer;
         }
-
         li:hover { background:#d0d0d0; }
         li.active { background:#4a90e2; color:white; }
+
+        /* INDEX BADGE */
+        .badge {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            background: #815050;
+            color: #fff;
+            width: 24px;
+            height: 24px;
+            border-radius: 10px 5px 15px 5px;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
 
         video {
             width: 90%;
@@ -141,81 +222,115 @@
 
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <!-- Left Panel -->
-        <div class="left-panel">
+    <!-- Left Panel -->
+    <div class="left-panel">
 
-            <div class="panel-directory">
-                
-                <div style="display:flex; align-items:center;">
-                    <p>Select Directory</p>
-                    <input type="file" id="folderInput" webkitdirectory directory multiple />
+        <div class="panel-directory">
+            
+            <div style="display:flex; align-items:center; gap:10px;">   
+                <button id="toggleModeBtn">Mode: Directory </button>
+
+                <!-- DIRECTORY INPUT -->
+                <div class="custom-file-wrapper" id="dirWrapper">
+                    <label for="folderInput" class="custom-btn">📂 Select Folder</label>
+                    <input type="file" id="folderInput" class="real-input" webkitdirectory directory multiple />
                 </div>
 
-                <div style="display:flex; align-items:center;">
-                    
-                    <!-- Tooltip wrapped speed dropdown -->
-                    <div class="tooltip-wrapper">
-                        <select id="speedControl">
-                            <option value="0.5">0.5x</option>
-                            <option value="0.75">0.75x</option>
-                            <option value="1" selected>1x (Normal)</option>
-                            <option value="1.25">1.25x</option>
-                            <option value="1.5">1.5x</option>
-                            <option value="1.75">1.75x</option>
-                            <option value="2">2x</option>
-                        </select>
-                        <div class="tooltip">"+" Increase, "-" Decrease, "1" Normal</div>
-                    </div>
-
-                    <button id="themeToggle"
-                        style="margin:15px 0; padding:10px 20px; border:none; background:#333; color:white; border-radius:6px; cursor:pointer;">
-                        Toggle Dark Mode
-                    </button>
-
+                <!-- FILE INPUT -->
+                <div class="custom-file-wrapper" id="fileWrapper" style="display:none;">
+                    <label for="fileInput" class="custom-btn">🎬 Select Videos</label>
+                    <input type="file" id="fileInput" class="real-input" multiple accept="video/*,video/x-matroska,video/x-msvideo,video/x-ms-wmv,video/x-flv,video/3gpp,video/3gpp2,video/MP2T,.mp4,.mkv,.mov,.avi,.wmv,.flv,.webm,.mts,.ts,.m4v" />
                 </div>
             </div>
 
-            <!-- Video Player -->
-            <video id="videoPlayer"
-                controls autoplay
-                controlsList="nodownload noremoteplayback"
-                oncontextmenu="return false;">
-            </video>
+            <div style="display:flex; align-items:center;">
+            
+                <div class="tooltip-wrapper">
+                    <select id="speedControl">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1x (Normal)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="1.75">1.75x</option>
+                        <option value="2">2x</option>
+                    </select>
+                    <div class="tooltip">"+" Increase, "-" Decrease, "1" Normal</div>
+                </div>
+                <button id="themeToggle">Dark Mode</button>
+            </div>
         </div>
 
-        <!-- Right Panel -->
-        <div class="right-panel">
-            <h3>Video Files:</h3>
-            <ul id="videoList"></ul>
-        </div>
-
+        <video id="videoPlayer"
+            controls autoplay
+            controlsList="nodownload noremoteplayback"
+            oncontextmenu="return false;">
+        </video>
     </div>
+
+    <div class="right-panel">
+        <h3>Video Files:</h3>
+        <ul id="videoList"></ul>
+    </div>
+
+</div>
 
 
 <script>
     const folderInput = document.getElementById('folderInput');
+    const fileInput = document.getElementById('fileInput');
     const videoList = document.getElementById('videoList');
     const videoPlayer = document.getElementById('videoPlayer');
-    const speedControl = document.getElementById('speedControl');
+    const speedControl = document.getElementById('speedControl');    
+    const toggleModeBtn = document.getElementById('toggleModeBtn');
 
-    folderInput.addEventListener('change', () => {
+    const dirWrapper = document.getElementById('dirWrapper');
+    const fileWrapper = document.getElementById('fileWrapper');
+
+    let mode = "directory";
+
+    // -------------------- Toggle Mode --------------------
+    toggleModeBtn.addEventListener("click", () => {
+        if (mode === "directory") {
+            mode = "file";
+            toggleModeBtn.textContent = "Mode: File";
+            dirWrapper.style.display = "none";
+            fileWrapper.style.display = "inline-block";
+        } else {
+            mode = "directory";
+            toggleModeBtn.textContent = "Mode: Directory";
+            fileWrapper.style.display = "none";
+            dirWrapper.style.display = "inline-block";
+        }
+    });
+
+    // Allowed video formats
+    const validFormats = [".mp4",".mkv",".mov",".avi",".webm",".m4v",".wmv",".flv",".mts",".ts"];
+
+    function isVideoFile(name) {
+        return validFormats.some(ext => name.toLowerCase().endsWith(ext));
+    }
+
+    function loadFiles(files) {
         videoList.innerHTML = "";
-        const files = Array.from(folderInput.files);
-        const videoFiles = files.filter(f => f.type.startsWith('video/'));
 
+        const videoFiles = files.filter(f => isVideoFile(f.name));
         let currentIndex = -1;
 
         videoFiles.forEach((file, index) => {
             const li = document.createElement('li');
-            li.textContent = file.name;
+
+            li.innerHTML = `
+                ${file.name}
+                <span class="badge">${index + 1}</span>
+            `;
 
             li.addEventListener('click', () => {
                 currentIndex = index;
                 videoPlayer.src = URL.createObjectURL(file);
                 videoPlayer.play();
-                
                 highlight(index);
             });
 
@@ -228,23 +343,29 @@
             );
         }
 
-        // Auto-play next
-        videoPlayer.addEventListener('ended', () => {
+        // Auto play next
+        videoPlayer.onended = () => {
             if (currentIndex + 1 < videoFiles.length) {
                 currentIndex++;
                 videoPlayer.src = URL.createObjectURL(videoFiles[currentIndex]);
                 videoPlayer.play();
                 highlight(currentIndex);
             }
-        });
+        };
+    }
+
+    folderInput.addEventListener("change", () => {
+        loadFiles([...folderInput.files]);
     });
 
-    // Dropdown Speed
-    speedControl.addEventListener('change', () => {
-        videoPlayer.playbackRate = parseFloat(speedControl.value);
+    fileInput.addEventListener("change", () => {
+        loadFiles([...fileInput.files]);
     });
 
-    // Shortcut keys
+    speedControl.addEventListener('change', () =>
+        videoPlayer.playbackRate = parseFloat(speedControl.value)
+    );
+
     document.addEventListener('keydown', e => {
         if (e.key === '-') videoPlayer.playbackRate = Math.max(0.25, videoPlayer.playbackRate - 0.25);
         if (e.key === '+') videoPlayer.playbackRate = Math.min(3, videoPlayer.playbackRate + 0.25);
@@ -256,6 +377,27 @@
 
 <script>
     const toggleBtn = document.getElementById('themeToggle');
+
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+    // AUTO APPLY SYSTEM THEME
+    function applySystemTheme() {
+        if (systemDark.matches) {
+            document.body.classList.add("dark");
+            toggleBtn.textContent = "Light Mode";
+        } else {
+            document.body.classList.remove("dark");
+            toggleBtn.textContent = "Dark Mode";
+        }
+    }
+
+    applySystemTheme();
+
+    // LIVE UPDATE IF SYSTEM THEME CHANGES
+    systemDark.addEventListener("change", applySystemTheme);
+
+    // MANUAL TOGGLE
+
     toggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
         toggleBtn.textContent = document.body.classList.contains('dark')
