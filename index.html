@@ -197,7 +197,7 @@
             padding: 10px;
             background: #fff;
             border-radius: 8px;
-            height: calc(90% - 40px);
+            height: 90%;
             overflow-y: auto;            
          }
 
@@ -373,7 +373,6 @@
          </div>
 
          <div class="right-panel">
-            <h3>Video Files:</h3>
             <p id="totalDuration">Total Duration: 00:00:00</p>
             <ul id="videoList"></ul>
          </div>
@@ -588,6 +587,7 @@
          systemDark.addEventListener("change", applySystemTheme);
 
          // MANUAL TOGGLE
+
          toggleBtn.addEventListener("click", () => {
             document.body.classList.toggle("dark");
             toggleBtn.textContent = document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
