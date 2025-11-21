@@ -48,6 +48,15 @@
             border: 1px solid #666;
          }
 
+         body.dark .duration {
+            color: #bbb;
+         }
+
+         body.dark #totalDuration {
+            background: #444;
+            color: #fff;
+         }
+
          /* AUTO SYSTEM THEME (prefers-color-scheme) */
          @media (prefers-color-scheme: dark) {
             body.dark {
@@ -89,6 +98,15 @@
                background: #333;
                color: #eee;
                border: 1px solid #666;
+            }
+
+            body.dark .duration {
+               color: #bbb;
+            }
+
+            body.dark #totalDuration {
+               background: #444;
+               color: #fff;
             }
          }
 
@@ -179,8 +197,8 @@
             padding: 10px;
             background: #fff;
             border-radius: 8px;
-            height: 90%;
-            overflow-y: auto;
+            height: calc(90% - 40px);
+            overflow-y: auto;            
          }
 
          /* VIDEO LIST ITEMS */
@@ -202,6 +220,10 @@
             color: white;
          }
 
+         li.active .duration {
+            color: #eee;
+         }
+
          /* INDEX BADGE */
          .badge {
             position: absolute;
@@ -213,6 +235,25 @@
             height: 24px;
             border-radius: 10px 5px 15px 5px;
             font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+         }
+
+         .duration {
+            font-size: 0.6em;
+            color: #fff;
+            float: right;
+            margin-left: 10px;
+            position: absolute;
+            bottom: -4px;
+            right: -2px;
+            background: #815050;
+            width: 60px;
+            height: 15px;
+            border-radius: 6px 2px 2px 6px;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -251,6 +292,17 @@
             height: 50px;
             align-items: center;
          }
+
+         #totalDuration {
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            background: #e0e0e0;
+            color: #333;
+            text-align: center;
+         }
+                  
       </style>
    </head>
 
@@ -322,6 +374,7 @@
 
          <div class="right-panel">
             <h3>Video Files:</h3>
+            <p id="totalDuration">Total Duration: 00:00:00</p>
             <ul id="videoList"></ul>
          </div>
       </div>
@@ -371,19 +424,43 @@
             return validFormats.some((ext) => name.toLowerCase().endsWith(ext));
          }
 
+         // Get the total duration display element
+         const totalDurationDisplay = document.getElementById("totalDuration");
+
+         // Function to format seconds into HH:MM:SS
+         function formatTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+
+            const pad = (num) => String(num).padStart(2, "0");
+
+            return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+         }
+
          function loadFiles(files) {
             videoList.innerHTML = "";
+            totalDurationDisplay.textContent = "Calculating..."; // Indicate loading
 
             const videoFiles = files.filter((f) => isVideoFile(f.name));
             let currentIndex = -1;
+            let totalPlaylistDuration = 0; 
+            let loadedCount = 0; 
+
+            if (videoFiles.length === 0) {
+               totalDurationDisplay.textContent = "Total Duration: 00:00:00";
+               return;
+            }
 
             videoFiles.forEach((file, index) => {
                const li = document.createElement("li");
+               li.dataset.index = index; 
 
                li.innerHTML = `
-                    ${file.name}
-                    <span class="badge">${index + 1}</span>
-                `;
+                  <span class="file-name">${file.name}</span>
+                  <span class="duration">Loading...</span> 
+                  <span class="badge">${index + 1}</span>
+               `;
 
                li.addEventListener("click", () => {
                   currentIndex = index;
@@ -393,7 +470,55 @@
                });
 
                videoList.appendChild(li);
+
+               // Calculate duration for each file using a temporary video element
+               const tempVideo = document.createElement('video');
+               tempVideo.preload = 'metadata';
+               tempVideo.src = URL.createObjectURL(file);
+
+               tempVideo.onloadedmetadata = function() {
+                  const currentLi = videoList.querySelector(`li[data-index="${index}"]`);
+                  if (currentLi) {
+                     const durationSpan = currentLi.querySelector('.duration');
+                     const duration = this.duration;
+
+                     durationSpan.textContent = formatTime(duration);
+                     
+                     // Update total duration
+                     totalPlaylistDuration += duration;
+                     loadedCount++;
+                     
+                     if (loadedCount === videoFiles.length) {
+                        // All videos have loaded metadata, update final total duration
+                        totalDurationDisplay.textContent = `Total Duration: ${formatTime(totalPlaylistDuration)}`;
+                     }
+                  }
+                  
+                  // Release the object URL after use
+                  URL.revokeObjectURL(this.src);
+               };
+               
+               // Handle potential errors (e.g., unsupported codec)
+               tempVideo.onerror = function() {
+                  const currentLi = videoList.querySelector(`li[data-index="${index}"]`);
+                  if (currentLi) {
+                     currentLi.querySelector('.duration').textContent = 'Error';
+                  }
+                  loadedCount++;
+                  if (loadedCount === videoFiles.length) {
+                     totalDurationDisplay.textContent = `Total Duration: ${formatTime(totalPlaylistDuration)}`;
+                  }
+                  URL.revokeObjectURL(this.src);
+               };
             });
+            
+            // Auto-play the first video if available
+            if (videoFiles.length > 0) {
+                  currentIndex = 0;
+                  videoPlayer.src = URL.createObjectURL(videoFiles[currentIndex]);
+                  highlight(currentIndex);
+            }
+
 
             function highlight(index) {
                [...videoList.children].forEach((li, i) =>
@@ -463,7 +588,6 @@
          systemDark.addEventListener("change", applySystemTheme);
 
          // MANUAL TOGGLE
-
          toggleBtn.addEventListener("click", () => {
             document.body.classList.toggle("dark");
             toggleBtn.textContent = document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
