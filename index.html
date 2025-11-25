@@ -437,11 +437,38 @@
             return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
          }
 
+         // Function for natural sort (1, 2, 10, 11 instead of 1, 10, 11, 2)
+         function naturalSort(a, b) {
+            const re = /(^([+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?(?:\s*|$))|[^0-9]+)/g;
+            const aParts = a.name.toLowerCase().split(re).filter(Boolean);
+            const bParts = b.name.toLowerCase().split(re).filter(Boolean);
+
+            for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+               const aPart = aParts[i];
+               const bPart = bParts[i];
+               const aIsNumber = !isNaN(aPart);
+               const bIsNumber = !isNaN(bPart);
+
+               if (aIsNumber && bIsNumber) {
+                     const numA = parseFloat(aPart);
+                     const numB = parseFloat(bPart);
+                     if (numA !== numB) {
+                        return numA - numB;
+                     }
+               } else {
+                     if (aPart < bPart) return -1;
+                     if (aPart > bPart) return 1;
+               }
+            }
+
+            return aParts.length - bParts.length;
+         }
+
          function loadFiles(files) {
             videoList.innerHTML = "";
             totalDurationDisplay.textContent = "Calculating..."; // Indicate loading
 
-            const videoFiles = files.filter((f) => isVideoFile(f.name));
+            const videoFiles = files.filter((f) => isVideoFile(f.name)).sort(naturalSort);
             let currentIndex = -1;
             let totalPlaylistDuration = 0; 
             let loadedCount = 0; 
